@@ -1,0 +1,8 @@
+#cache#
+./__pycache__/*
+./vscode/*
+./output/*
+
+##working files##
+asy_queue.py
+
