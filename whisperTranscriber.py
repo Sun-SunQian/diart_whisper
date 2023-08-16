@@ -74,12 +74,16 @@ class WhisperTranscriber:
     def __call__(self, diarization, waveform):
         # Step 1: Transcribe
         transcription = self.transcribe(waveform)
+        # print(f"transcription: {transcription}")
         # Update transcription buffer
         self._buffer += transcription["text"]
+
+        # print("transcription text: " + str(transcription["text"]))
         # The audio may not be the beginning of the conversation
         time_shift = waveform.sliding_window.start
         # Step 2: Assign speakers
         speaker_transcriptions = self.identify_speakers(transcription, diarization, time_shift)
+        # print(f"speaker_transcriptions: {speaker_transcriptions}")
         return speaker_transcriptions
     
 

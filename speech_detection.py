@@ -1,5 +1,6 @@
 from diart.sources import *
 from whisperTranscriber import WhisperTranscriber
+from fasterWhisperTranscrib import FasterWhisperTranscriber
 from util_func import concat,colorize_transcription
 
 import torch
@@ -11,6 +12,8 @@ import rich
 import rx.operators as ops
 from diart import OnlineSpeakerDiarization, PipelineConfig
 from diart.sources import MicrophoneAudioSource,FileAudioSource
+import time
+
 
 
 # refer to: https://gist.github.com/juanmc2005/ed6413e697e176cb36a149d8c40a3a5b
@@ -20,7 +23,7 @@ from diart.sources import MicrophoneAudioSource,FileAudioSource
 
 
 # Suppress whisper-timestamped warnings for a clean output
-logging.getLogger("whisper_timestamped").setLevel(logging.ERROR)
+# logging.getLogger("whisper_timestamped").setLevel(logging.ERROR)
 
 # We configure the system to use sliding windows of 5 seconds with a step of 500ms (the default) 
 # and we set the latency to the minimum (500ms) to increase responsiveness.
@@ -39,18 +42,26 @@ config = PipelineConfig(
 )
 print(f"config sample rate: {config.sample_rate}")
 dia = OnlineSpeakerDiarization(config)
-print(f"OnlineSpeakerDiarization initialised")
-source = MicrophoneAudioSource(config.sample_rate)
+# print(f"OnlineSpeakerDiarization initialised")
+# source = MicrophoneAudioSource(config.sample_rate)
+# file = '/media/zytest/sda2/AMI/EN2001a/audio/EN2001a.Mix-Headset.wav'
+file = '/media/zytest/sda2/ASR/IMDA/PART4/sur_0009_1018_phns_cs-chn.wav' 
 
-# source = FileAudioSource(file='/media/zytest/sda2/AMI/ES2002a/audio/ES2002a.Mix-Headset.wav',
-#                          sample_rate = 16000)
+source = FileAudioSource(file=file,
+                         sample_rate = 16000)
 print(f"source initialised")
 # Creating the ASR module
 # If you have a GPU, you can also set device="cuda"
-asr = WhisperTranscriber(model="medium",device='cuda')
+# asr = WhisperTranscriber(model="medium",device='cuda')
 
+# asr = WhisperTranscriber(model="medium",device='cuda')
+
+faster_whisper_model_path='/home/zytest/ASR/Faster_Whisper/Medium_FineTuned'
+# faster_whisper_model_path = 'medium.en'
+asr = FasterWhisperTranscriber(model = faster_whisper_model_path, device = "cuda",language="en")
+print("whisper transcriber loaded")
 # Split the stream into 2s chunks for transcription
-transcription_duration = 2
+transcription_duration = 4
 
 # Apply models in batches for better efficiency
 batch_size = int(transcription_duration // config.step)
@@ -81,5 +92,13 @@ source.stream.pipe(
     on_error=lambda _: traceback.print_exc())# print stacktrace if error
 
 print("Listening...")
+#Test code to sleep for 3 second for count down
+print("3...")
+time.sleep(1)
+print("2...")
+time.sleep(1)
+print("1...")
+time.sleep(1)
+print("Go...")
 source.read()
 
